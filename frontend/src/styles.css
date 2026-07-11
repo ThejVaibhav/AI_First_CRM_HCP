@@ -1,0 +1,464 @@
+/* Google Inter applied to ALL elements (BRD C12 / Section 15). */
+* {
+  box-sizing: border-box;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+:root {
+  --blue: #2980b9;
+  --blue-dark: #216394;
+  --panel-gray: #f5f5f5;
+  --border: #e0e0e0;
+  --text: #2c3e50;
+  --label: #666666;
+  --muted: #95a5a6;
+  --field-bg: #fafbfc;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: #eef1f4;
+  color: var(--text);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Split-screen: ~65% / ~35%, full height, no gaps (BRD 8.1). */
+.split {
+  display: flex;
+  height: 100vh;
+  min-height: 0;
+}
+.left-panel {
+  flex: 0 0 65%;
+  background: #fff;
+  overflow-y: auto;
+  padding: 30px 36px;
+}
+.right-panel {
+  flex: 1;
+  background: var(--panel-gray);
+  border-left: 1px solid var(--border);
+  display: flex;
+  min-height: 0;
+  padding: 16px;
+}
+
+/* Thin, rounded scrollbars. */
+.left-panel::-webkit-scrollbar,
+.chat-thread::-webkit-scrollbar {
+  width: 8px;
+}
+.left-panel::-webkit-scrollbar-thumb,
+.chat-thread::-webkit-scrollbar-thumb {
+  background: #cfd6dc;
+  border-radius: 8px;
+}
+.left-panel::-webkit-scrollbar-track,
+.chat-thread::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------------- Left form ---------------- */
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.form-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1f2d3a;
+}
+.btn-clear {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--label);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-clear:hover {
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.section-label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 18px 0 14px;
+}
+
+.field {
+  margin-bottom: 18px;
+  border-radius: 8px;
+  transition: background 0.4s ease;
+}
+.field-row {
+  display: flex;
+  gap: 20px;
+}
+.field-row .field {
+  flex: 1;
+}
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--label);
+  margin-bottom: 8px;
+}
+
+/* Read-only inputs styled like real fields (BRD: only AI can populate). */
+.ro-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--field-bg);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+.ro-input::placeholder {
+  color: #aab4bd;
+}
+.ro-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.12);
+}
+.ro-input:disabled {
+  background: var(--field-bg);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  opacity: 1;
+}
+.ro-area {
+  resize: vertical;
+  min-height: 84px;
+  line-height: 1.5;
+}
+
+.input-wrap {
+  position: relative;
+}
+.input-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  opacity: 0.55;
+}
+.has-icon {
+  padding-left: 36px;
+}
+.select-like {
+  appearance: none;
+}
+.select-chevron {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--label);
+  pointer-events: none;
+  font-size: 14px;
+}
+
+.group-header {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 22px 0 12px;
+}
+.sub-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 8px;
+  padding: 2px;
+}
+.list-empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+.list-value {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-ghost {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* Highlight flash when the AI populates a field (BRD 8.1 / 15). */
+@keyframes flash {
+  0% {
+    background: #fff3bf;
+  }
+  100% {
+    background: transparent;
+  }
+}
+.field--flash {
+  animation: flash 0.6s ease;
+}
+
+.sentiment-row {
+  display: flex;
+  gap: 26px;
+  align-items: center;
+}
+.sentiment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text);
+  cursor: default;
+}
+.radio {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #cbd3da;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+.radio--on {
+  border-color: var(--blue);
+}
+.radio--on::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+.sentiment-emoji {
+  font-size: 19px;
+}
+.sentiment--active {
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.voice-note {
+  margin: -6px 0 4px;
+}
+.voice-link {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+.voice-link:hover {
+  color: var(--blue-dark);
+}
+.voice-link--recording {
+  color: #c0392b;
+}
+.voice-link--working {
+  color: var(--muted);
+}
+
+/* ---------------- Right chat ---------------- */
+.chat {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+.chat-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+.chat-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--blue);
+}
+.chat-bot {
+  font-size: 20px;
+}
+.chat-header-sub {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.chat-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--panel-gray);
+}
+.bubble {
+  max-width: 88%;
+  padding: 12px 15px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.bubble--user {
+  align-self: flex-end;
+  background: var(--blue);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.bubble--ai {
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.bubble--greeting,
+.bubble--default {
+  background: #ebf5fb;
+  color: var(--text);
+}
+.bubble--success {
+  background: #d5f5e3;
+  color: #1e4d33;
+}
+.bubble--error {
+  background: #fdecea;
+  color: #9b2c22;
+}
+
+.bubble--typing {
+  display: flex;
+  gap: 5px;
+  background: #ebf5fb;
+  align-items: center;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #9bb4c7;
+  animation: bounce 1.2s infinite;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+.chat-input-bar {
+  border-top: 1px solid var(--border);
+  padding: 14px;
+  background: #fff;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.chat-input {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.chat-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.12);
+}
+.btn-log {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+  box-shadow: 0 2px 6px rgba(41, 128, 185, 0.35);
+  transition: background 0.2s ease;
+}
+.btn-log-a {
+  font-size: 13px;
+}
+.btn-log-label {
+  font-size: 15px;
+}
+.btn-log:hover:not(:disabled) {
+  background: var(--blue-dark);
+}
+.btn-log:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
