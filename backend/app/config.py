@@ -26,7 +26,10 @@ class Settings:
         self.BACKEND_PORT: int = int(os.getenv("BACKEND_PORT", "8000"))
 
         # Groq model identifiers (per BRD Section 11).
-        self.PRIMARY_MODEL: str = os.getenv("PRIMARY_MODEL", "gemma2-9b-it")
+        # NOTE: the BRD's primary model `gemma2-9b-it` was decommissioned by Groq
+        # (model_decommissioned, 400). Migrated to `llama-3.3-70b-versatile`, a
+        # currently-supported Groq model with reliable tool-calling/routing.
+        self.PRIMARY_MODEL: str = os.getenv("PRIMARY_MODEL", "llama-3.3-70b-versatile")
         self.SECONDARY_MODEL: str = os.getenv(
             "SECONDARY_MODEL", "llama-3.3-70b-versatile"
         )

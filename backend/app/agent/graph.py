@@ -35,34 +35,59 @@ def _system_prompt(interaction_data: dict) -> SystemMessage:
             "calling tools — the user NEVER fills the form manually.\n\n"
             f"Today's date is {today.isoformat()} ({today.strftime('%A')}). Resolve all "
             "relative dates (today, yesterday, last Monday, next Monday) to real ISO dates.\n\n"
-            "Available tools:\n"
-            "- LogInteractionArgs (log_interaction): extract & log a new interaction. "
-            "Infer sentiment from tone; do not keyword-match.\n"
-            "- EditInteractionArgs (edit_interaction): correct field(s). Include ONLY the "
-            "field(s) being changed; never touch others.\n"
-            "- ScheduleFollowupArgs (schedule_followup): schedule a follow-up.\n"
-            "- SuggestNextActionArgs (suggest_next_action): recommend the next best action.\n"
-            "- SearchHcpHistoryArgs (search_hcp_history): look up past interactions.\n\n"
-            "Choose the single most appropriate tool for the user's message. If the message "
-            "has no interaction content and needs no tool, reply helpfully in plain text. "
-            "After a tool runs, confirm to the user which fields were populated and offer a "
-            "next step (e.g. schedule a follow-up or suggest a next action).\n\n"
+            "Call EXACTLY ONE tool that best matches the user's intent. Never call more "
+            "than one tool for a single message. Trigger mapping:\n"
+            "- Describing a NEW visit/meeting/call → log_interaction (infer sentiment from "
+            "tone; do not keyword-match).\n"
+            "- Correcting/changing a field ('change the sentiment', 'the date was actually "
+            "…') → edit_interaction. Include ONLY the field(s) being changed; never touch "
+            "others. Do NOT also call log_interaction.\n"
+            "- 'Schedule a follow-up…', 'set up a follow-up' → schedule_followup. This must "
+            "ONLY affect follow_up_actions — do NOT change date, interaction_type, outcomes, "
+            "or any other field, and do NOT call log_interaction.\n"
+            "- 'What should I do next?', 'what's the next best action', 'any recommendation' "
+            "→ suggest_next_action.\n"
+            "- 'What did I discuss with…', 'how many times have I met…', questions about past "
+            "visits → search_hcp_history.\n\n"
+            "If (and only if) the message has no interaction intent, reply helpfully in plain "
+            "text with no tool call.\n\n"
             f"Current form state: {json.dumps(interaction_data)}"
         )
     )
 
 
 def llm_node(state: AgentState) -> dict:
-    """Call gemma2-9b-it with the conversation + bound tool schemas."""
-    llm = get_primary_llm().bind_tools(TOOL_SCHEMAS)
+    """Call the primary Groq model. Binds tools on the first pass; on the pass
+    after a tool has run, produces a concise final confirmation with no tools."""
     messages = [_system_prompt(state.get("interaction_data", {}))] + state["messages"]
+
+    if state.get("tools_done"):
+        # Second pass: force a short natural-language confirmation, no more tools.
+        messages.append(
+            SystemMessage(
+                content=(
+                    "A tool has just run (see the tool result above). Write a brief, "
+                    "friendly 1–2 sentence confirmation for the user and offer a natural "
+                    "next step. Do NOT output raw JSON or the form state, and do NOT call "
+                    "any more tools."
+                )
+            )
+        )
+        llm = get_primary_llm()
+    else:
+        llm = get_primary_llm().bind_tools(TOOL_SCHEMAS)
+
     try:
         response: AIMessage = llm.invoke(messages)
     except Exception as exc:  # Groq rate limit / timeout / network
         logger.exception("LLM invocation failed")
         raise RuntimeError("LLM_UNAVAILABLE") from exc
 
-    next_action = "tool" if getattr(response, "tool_calls", None) else "end"
+    next_action = (
+        "tool"
+        if getattr(response, "tool_calls", None) and not state.get("tools_done")
+        else "end"
+    )
     return {"messages": [response], "next_action": next_action}
 
 
@@ -75,7 +100,11 @@ def tool_executor_node(state: AgentState) -> dict:
     tool_messages = []
     last_tool_name = None
 
-    for call in last.tool_calls:
+    # Execute ONLY the first tool call. One user message maps to one action;
+    # this prevents the model from chaining a second tool that would corrupt
+    # unrelated fields (e.g. schedule_followup + an extra log_interaction).
+    calls = last.tool_calls[:1]
+    for call in calls:
         schema_name = call["name"]
         tool_name = TOOL_NAME_MAP.get(schema_name, schema_name)
         handler = HANDLERS.get(tool_name)
@@ -94,12 +123,23 @@ def tool_executor_node(state: AgentState) -> dict:
         fields_to_update.update(fields)
         tool_messages.append(ToolMessage(content=note, tool_call_id=call["id"]))
 
+    # Satisfy the API contract: every tool_call in the AIMessage needs a
+    # matching ToolMessage. Acknowledge any skipped (extra) calls.
+    for skipped in last.tool_calls[1:]:
+        tool_messages.append(
+            ToolMessage(
+                content="Skipped — only one action is handled per message.",
+                tool_call_id=skipped["id"],
+            )
+        )
+
     return {
         "messages": tool_messages,
         "interaction_data": interaction_data,
         "fields_to_update": fields_to_update,
         "tool_called": last_tool_name,
         "tool_result": fields_to_update,
+        "tools_done": True,
     }
 
 

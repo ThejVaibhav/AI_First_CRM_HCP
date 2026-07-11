@@ -21,5 +21,7 @@ class AgentState(TypedDict, total=False):
     next_action: str
     # Accumulated field updates to return to the frontend Redux store.
     fields_to_update: dict[str, Any]
+    # True once a tool has run this turn — forces a final text response next.
+    tools_done: bool
     # Non-serialized runtime handle to the DB session (injected per request).
     _db: Any
