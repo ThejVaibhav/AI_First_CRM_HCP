@@ -18,13 +18,18 @@ flows through the AI Assistant chat on the right.
 | Font             | Google **Inter** (throughout)                          |
 | Backend          | Python 3.11+ · FastAPI · CORS enabled                  |
 | Agent framework  | **LangGraph** (graph: `llm_node` ⇄ `tool_executor_node`) |
-| LLM — primary    | Groq **`gemma2-9b-it`** (routing + extraction)         |
+| LLM — primary    | Groq **`llama-3.3-70b-versatile`** (routing + extraction) |
 | LLM — secondary  | Groq **`llama-3.3-70b-versatile`** (summaries / NBA)   |
 | Speech-to-Text   | Groq **Whisper** (`/api/voice/transcribe`)             |
 | Database         | PostgreSQL (JSONB) via SQLAlchemy + Alembic            |
 
 **Zero hardcoded extraction** — no regex/keyword parsing anywhere. The LLM performs
 all entity extraction, date resolution, and sentiment inference (BRD C2).
+
+> **⚠️ Model note:** The BRD specified `gemma2-9b-it` as the primary LLM, but Groq
+> has since **decommissioned** that model (`400 model_decommissioned`). The primary
+> model is now **`llama-3.3-70b-versatile`**, a currently-supported Groq model with
+> reliable tool-calling/routing. This is configurable via `PRIMARY_MODEL` in `.env`.
 
 ### The exactly-5 LangGraph tools (BRD §9, C8)
 
@@ -43,7 +48,7 @@ consent) → Groq Whisper → transcribed text → injected into the chat → `l
 
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL 14+ running locally
+- **Docker** (recommended, for Postgres) — or a local PostgreSQL 14+ install
 - A **new** Groq API key (BRD C6)
 
 ### Create a new Groq API key
@@ -51,6 +56,35 @@ consent) → Groq Whisper → transcribed text → injected into the chat → `l
 1. Go to <https://console.groq.com> and sign in.
 2. Create a **new** API key (do not reuse an existing token).
 3. Copy it into `backend/.env` as `GROQ_API_KEY`.
+
+---
+
+## Database (Docker — recommended)
+
+The repo ships a `docker-compose.yml` that runs Postgres 16 with the correct
+database, credentials, and a persistent volume. From the project root:
+
+```bash
+docker compose up -d          # starts Postgres on localhost:5432 (db: hcp_crm)
+```
+
+This matches the default `DATABASE_URL` below out of the box:
+
+```
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hcp_crm
+```
+
+**After a reboot**, the container is stopped (not deleted) — restart it with:
+
+```bash
+docker start hcp_pg           # container name is fixed to hcp_pg
+```
+
+Other handy commands: `docker compose stop` (pause), `docker compose down` (remove
+container, **keeps** the data volume), `docker compose down -v` (remove data too).
+
+> Prefer a local Postgres instead? Install it, run `createdb hcp_crm`, and set
+> `DATABASE_URL` in `backend/.env` accordingly.
 
 ---
 
@@ -63,12 +97,9 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-#   → set GROQ_API_KEY and DATABASE_URL
+#   → set GROQ_API_KEY (DATABASE_URL already matches docker compose)
 
-# Create the database (once)
-createdb hcp_crm         # or: psql -c "CREATE DATABASE hcp_crm;"
-
-# Apply the schema
+# Apply the schema (with Postgres running via docker compose)
 alembic upgrade head
 
 # Run the API (http://localhost:8000)
@@ -83,7 +114,7 @@ Interactive docs: <http://localhost:8000/docs>
 | Variable          | Example                                            |
 | ----------------- | -------------------------------------------------- |
 | `GROQ_API_KEY`    | `gsk_...` (new token from console.groq.com)        |
-| `DATABASE_URL`    | `postgresql://user:pass@localhost:5432/hcp_crm`    |
+| `DATABASE_URL`    | `postgresql://postgres:postgres@localhost:5432/hcp_crm` (docker compose default) |
 | `ALLOWED_ORIGINS` | `http://localhost:3000,http://localhost:5173`      |
 | `BACKEND_PORT`    | `8000`                                             |
 
