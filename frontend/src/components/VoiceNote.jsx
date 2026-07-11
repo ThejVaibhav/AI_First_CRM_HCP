@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useDispatch } from "react-redux";
+import { Mic, Square } from "lucide-react";
 import { transcribeAudio } from "../api/client";
 import { sendMessageToAgent } from "../store/sendMessage";
 import { addMessage } from "../store/chatSlice";
@@ -67,12 +68,12 @@ export default function VoiceNote() {
     <div className="voice-note">
       {status === "idle" && (
         <button className="voice-link" onClick={startRecording}>
-          🎙 Summarize from Voice Note (Requires Consent)
+          <Mic size={14} /> Summarize from Voice Note (Requires Consent)
         </button>
       )}
       {status === "recording" && (
         <button className="voice-link voice-link--recording" onClick={stopRecording}>
-          ⏹ Recording… tap to stop
+          <Square size={13} fill="currentColor" /> Recording… tap to stop
         </button>
       )}
       {status === "working" && (

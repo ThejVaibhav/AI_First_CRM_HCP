@@ -1,6 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Bot, Send, CheckCircle2 } from "lucide-react";
 import { sendMessageToAgent } from "../store/sendMessage";
+
+function formatTime(ts) {
+  try {
+    return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "";
+  }
+}
 
 export default function ChatPanel() {
   const dispatch = useDispatch();
@@ -29,21 +38,28 @@ export default function ChatPanel() {
 
   return (
     <div className="chat">
+      <div className="chat-accent" />
       <div className="chat-header">
         <div className="chat-header-title">
-          <span className="chat-bot">🤖</span>
+          <span className="chat-bot">
+            <Bot size={20} />
+          </span>
           <span>AI Assistant</span>
+          <span className="status-badge">
+            <span className="status-dot" /> Connected
+          </span>
         </div>
         <div className="chat-header-sub">Log Interaction details here via chat</div>
       </div>
 
       <div className="chat-thread" ref={threadRef}>
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`bubble bubble--${m.role} bubble--${m.variant || "default"}`}
-          >
-            {m.content}
+          <div key={i} className={`bubble bubble--${m.role} bubble--${m.variant || "default"}`}>
+            {m.variant === "success" && (
+              <CheckCircle2 size={15} className="bubble-check" />
+            )}
+            <span className="bubble-text">{m.content}</span>
+            <span className="bubble-time">{formatTime(m.timestamp)}</span>
           </div>
         ))}
         {isLoading && (
@@ -64,9 +80,8 @@ export default function ChatPanel() {
           onKeyDown={onKeyDown}
           rows={2}
         />
-        <button className="btn-log" onClick={submit} disabled={isLoading}>
-          <span className="btn-log-a">A</span>
-          <span className="btn-log-label">Log</span>
+        <button className="btn-send" onClick={submit} disabled={isLoading} title="Log Interaction">
+          <Send size={20} />
         </button>
       </div>
     </div>
